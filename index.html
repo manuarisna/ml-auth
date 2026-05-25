@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VM Fishing — Conectar Mercado Libre</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0a0f0d;
+      --surface: #111812;
+      --border: #1e2b22;
+      --accent: #2dff7a;
+      --accent-dim: #1a9947;
+      --text: #e8f0ea;
+      --muted: #5a7060;
+      --ml-yellow: #ffe600;
+      --ml-blue: #3483fa;
+      --danger: #ff4d4d;
+      --success: #2dff7a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(45,255,122,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.8rem;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 0.2rem;
+      line-height: 1;
+    }
+
+    .tagline {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 3rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%; transform: translateX(-50%);
+      width: 60%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-dim), transparent);
+    }
+
+    .step-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.6rem;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    .desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+
+    .field {
+      margin-bottom: 1.2rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--accent-dim);
+    }
+
+    input::placeholder { color: var(--muted); }
+
+    .btn-ml {
+      width: 100%;
+      padding: 0.9rem;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      transition: all 0.2s;
+      margin-top: 1.5rem;
+      background: var(--ml-yellow);
+      color: #1a1a1a;
+    }
+
+    .btn-ml:hover {
+      background: #ffd900;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(255,230,0,0.2);
+    }
+
+    .btn-ml:active { transform: translateY(0); }
+
+    .ml-icon {
+      width: 22px; height: 22px;
+      background: var(--ml-blue);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    /* Token result */
+    #result {
+      display: none;
+      margin-top: 2rem;
+    }
+
+    .result-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.2rem;
+    }
+
+    .result-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .token-display {
+      font-family: 'Courier New', monospace;
+      font-size: 0.72rem;
+      color: var(--accent);
+      word-break: break-all;
+      line-height: 1.5;
+      background: rgba(45,255,122,0.04);
+      border: 1px solid rgba(45,255,122,0.12);
+      border-radius: 6px;
+      padding: 0.8rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .btn-copy {
+      background: transparent;
+      border: 1px solid var(--accent-dim);
+      color: var(--accent);
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+    }
+
+    .btn-copy:hover { background: rgba(45,255,122,0.08); }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 1rem;
+    }
+
+    .badge-success {
+      background: rgba(45,255,122,0.1);
+      border: 1px solid rgba(45,255,122,0.3);
+      color: var(--accent);
+    }
+
+    .badge-error {
+      background: rgba(255,77,77,0.1);
+      border: 1px solid rgba(255,77,77,0.3);
+      color: var(--danger);
+    }
+
+    .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .info-note {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .info-note strong { color: var(--text); }
+
+    .next-steps {
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .next-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .step-num {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--border);
+      color: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 600;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    footer {
+      margin-top: 2rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="logo">VM Fishing</div>
+  <div class="tagline">Panel de conexión · Mercado Libre</div>
+
+  <div class="card" id="loginCard">
+    <div class="step-label">Paso 1 de 2</div>
+    <h2>Conectar tu cuenta</h2>
+    <p class="desc">Ingresá tu App ID y la Redirect URI que configuraste en el DevCenter de ML. Estos datos no se envían a ningún servidor.</p>
+
+    <div class="field">
+      <label>App ID (Client ID)</label>
+      <input type="text" id="appId" placeholder="Ej: 1234567890123456" autocomplete="off"/>
+    </div>
+
+    <div class="field">
+      <label>Redirect URI</label>
+      <input type="text" id="redirectUri" placeholder="https://tuusuario.github.io/ml-auth" autocomplete="off"/>
+    </div>
+
+    <button class="btn-ml" onclick="loginML()">
+      <div class="ml-icon">ML</div>
+      Iniciar sesión con Mercado Libre
+    </button>
+
+    <div class="info-note">
+      <strong>¿Qué pasa cuando hacés clic?</strong><br/>
+      Se abre la pantalla de autorización oficial de ML. Iniciás sesión con tu cuenta vendedor y ML te redirige de vuelta acá con tu token listo para usar.
+    </div>
+  </div>
+
+  <div class="card" id="tokenCard" style="display:none;">
+    <div class="step-label">Paso 2 de 2</div>
+    <h2>Token obtenido</h2>
+
+    <div id="result">
+      <div id="statusBadge"></div>
+      <div class="result-box">
+        <div class="result-label">Access Token</div>
+        <div class="token-display" id="tokenDisplay">—</div>
+        <button class="btn-copy" onclick="copyToken()">📋 Copiar token</button>
+      </div>
+
+      <div class="info-note">
+        <strong>Guardá este token</strong> en un lugar seguro (bloc de notas, gestor de contraseñas). Lo vas a necesitar para consultar la API.<br/><br/>
+        <strong>Próximos pasos:</strong>
+        <div class="next-steps">
+          <div class="next-step"><div class="step-num">1</div>Copiá el token y guardalo</div>
+          <div class="next-step"><div class="step-num">2</div>Avisame y armamos la primera consulta a tus ventas</div>
+          <div class="next-step"><div class="step-num">3</div>Después conectamos Tiendanube y unificamos todo</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>VM Fishing · Herramienta de uso interno · Los datos no salen de tu navegador</footer>
+
+  <script>
+    // ─── Config ───────────────────────────────────────────────────
+    // El App ID y Redirect URI se leen del formulario, no están hardcodeados.
+
+    function loginML() {
+      const appId = document.getElementById('appId').value.trim();
+      const redirectUri = document.getElementById('redirectUri').value.trim();
+
+      if (!appId || !redirectUri) {
+        alert('Completá el App ID y la Redirect URI antes de continuar.');
+        return;
+      }
+
+      // Guardar en sessionStorage para recuperar después del redirect
+      sessionStorage.setItem('ml_app_id', appId);
+      sessionStorage.setItem('ml_redirect_uri', redirectUri);
+
+      const authUrl = `https://auth.mercadolibre.com.ar/authorization?response_type=code&client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+      window.location.href = authUrl;
+    }
+
+    // ─── Al volver del redirect de ML ─────────────────────────────
+    function checkCallback() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      const error = params.get('error');
+
+      if (!code && !error) return; // No venimos de ML
+
+      // Mostrar card de token, ocultar login
+      document.getElementById('loginCard').style.display = 'none';
+      document.getElementById('tokenCard').style.display = 'block';
+      document.getElementById('result').style.display = 'block';
+
+      const badge = document.getElementById('statusBadge');
+      const tokenDisplay = document.getElementById('tokenDisplay');
+
+      if (error) {
+        badge.innerHTML = `<div class="status-badge badge-error"><div class="dot"></div>Error en la autorización: ${error}</div>`;
+        tokenDisplay.textContent = 'No se pudo obtener el token. Revisá los datos de tu app en el DevCenter.';
+        return;
+      }
+
+      // Tenemos el code — mostrarlo con instrucciones
+      badge.innerHTML = `<div class="status-badge badge-success"><div class="dot"></div>Código de autorización recibido</div>`;
+
+      tokenDisplay.textContent = code;
+
+      // Limpiar URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      // Nota extra
+      const note = document.querySelector('.info-note');
+      if (note) {
+        note.innerHTML = `
+          <strong>⚠️ Este es el código de autorización, no el token final.</strong><br/><br/>
+          ML devuelve primero un <em>código</em> que hay que intercambiar por el <em>access token</em> real. 
+          Este paso requiere el Client Secret y se hace de forma segura.<br/><br/>
+          <strong>Copiá este código</strong> y avisame — yo te indico exactamente cómo obtener el token final con un solo comando.
+          <div class="next-steps" style="margin-top:0.8rem;">
+            <div class="next-step"><div class="step-num">1</div>Copiá el código de arriba</div>
+            <div class="next-step"><div class="step-num">2</div>Avisame y te paso el comando para el token</div>
+            <div class="next-step"><div class="step-num">3</div>Listo para consultar tus ventas</div>
+          </div>
+        `;
+      }
+    }
+
+    function copyToken() {
+      const text = document.getElementById('tokenDisplay').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.btn-copy');
+        btn.textContent = '✅ Copiado';
+        setTimeout(() => btn.textContent = '📋 Copiar token', 2000);
+      });
+    }
+
+    // Ejecutar al cargar
+    checkCallback();
+  </script>
+</body>
+</html>
