@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VM Fishing · Dashboard ML</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #080c0a;
+      --surface: #0f1511;
+      --surface2: #141c18;
+      --border: #1c2820;
+      --accent: #2dff7a;
+      --accent-dim: #1a9947;
+      --accent-glow: rgba(45,255,122,0.15);
+      --text: #e4ede6;
+      --muted: #4d6b56;
+      --muted2: #2a3d30;
+      --ml-yellow: #ffe600;
+      --danger: #ff5c5c;
+      --warning: #ffb347;
+      --info: #5cb8ff;
+      --success: #2dff7a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Login Screen ── */
+    #loginScreen {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(45,255,122,0.07) 0%, transparent 70%);
+    }
+
+    .login-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3.5rem;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .login-sub {
+      font-size: 0.72rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 3rem;
+    }
+
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 440px;
+      position: relative;
+    }
+
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%; transform: translateX(-50%);
+      width: 50%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-dim), transparent);
+    }
+
+    .login-card h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.4rem;
+    }
+
+    .login-card p {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 1.8rem;
+      line-height: 1.6;
+    }
+
+    .field { margin-bottom: 1rem; }
+
+    label {
+      display: block;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus { border-color: var(--accent-dim); }
+    input::placeholder { color: var(--muted2); }
+
+    .btn-primary {
+      width: 100%;
+      padding: 0.85rem;
+      background: var(--accent);
+      color: #060e08;
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary:hover {
+      background: #45ff8a;
+      box-shadow: 0 0 24px rgba(45,255,122,0.3);
+      transform: translateY(-1px);
+    }
+
+    /* ── Dashboard ── */
+    #dashboard { display: none; }
+
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .topbar-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.6rem;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+
+    .topbar-badge {
+      background: rgba(45,255,122,0.1);
+      border: 1px solid rgba(45,255,122,0.25);
+      color: var(--accent);
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .last-update {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .btn-refresh {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0.45rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn-refresh:hover { border-color: var(--accent-dim); color: var(--accent); }
+    .btn-refresh.loading { opacity: 0.5; pointer-events: none; }
+
+    .btn-logout {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: color 0.2s;
+    }
+    .btn-logout:hover { color: var(--danger); }
+
+    /* ── Period tabs ── */
+    .period-bar {
+      padding: 1.5rem 2rem 0;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .tab {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 0.4rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      background: var(--accent-glow);
+      border-color: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    /* ── Main grid ── */
+    .main {
+      padding: 1.5rem 2rem 3rem;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+
+    /* ── Stat cards ── */
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-dim), transparent);
+      opacity: 0.4;
+    }
+
+    .stat-icon {
+      font-size: 1.2rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .stat-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.2rem;
+      letter-spacing: 0.02em;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .stat-value.accent { color: var(--accent); }
+
+    .stat-sub {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    /* ── Wide panels ── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .panel-full { grid-column: 1 / -1; }
+    .panel-half { grid-column: span 2; }
+
+    .panel-head {
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.1rem;
+      letter-spacing: 0.06em;
+      color: var(--text);
+    }
+
+    .panel-count {
+      font-size: 0.72rem;
+      color: var(--muted);
+      background: var(--surface2);
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+    }
+
+    /* ── Orders table ── */
+    .orders-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .orders-table th {
+      text-align: left;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0.8rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      font-weight: 500;
+    }
+
+    .orders-table td {
+      padding: 0.9rem 1.5rem;
+      font-size: 0.83rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .orders-table tr:last-child td { border-bottom: none; }
+
+    .orders-table tr:hover td { background: var(--surface2); }
+
+    .order-id {
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.7rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 20px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .status-paid { background: rgba(45,255,122,0.1); color: var(--success); border: 1px solid rgba(45,255,122,0.2); }
+    .status-pending { background: rgba(255,179,71,0.1); color: var(--warning); border: 1px solid rgba(255,179,71,0.2); }
+    .status-cancelled { background: rgba(255,92,92,0.1); color: var(--danger); border: 1px solid rgba(255,92,92,0.2); }
+    .status-shipped { background: rgba(92,184,255,0.1); color: var(--info); border: 1px solid rgba(92,184,255,0.2); }
+
+    .amount-cell { color: var(--accent); font-weight: 500; }
+
+    /* ── Products list ── */
+    .product-list { padding: 0.5rem 0; }
+
+    .product-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.8rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    .product-item:last-child { border-bottom: none; }
+    .product-item:hover { background: var(--surface2); }
+
+    .product-rank {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      color: var(--muted2);
+      width: 28px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .product-rank.top { color: var(--ml-yellow); }
+
+    .product-info { flex: 1; min-width: 0; }
+
+    .product-name {
+      font-size: 0.83rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .product-id {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.1rem;
+    }
+
+    .product-bar-wrap {
+      width: 80px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .product-bar {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+
+    .product-qty {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--accent);
+      width: 40px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* ── Customers list ── */
+    .customer-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.8rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    .customer-item:last-child { border-bottom: none; }
+    .customer-item:hover { background: var(--surface2); }
+
+    .customer-avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .customer-info { flex: 1; min-width: 0; }
+
+    .customer-name {
+      font-size: 0.83rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .customer-orders {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.1rem;
+    }
+
+    .customer-total {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    /* ── Empty / loading ── */
+    .empty {
+      padding: 2.5rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.83rem;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-overlay {
+      padding: 3rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      color: var(--muted);
+      font-size: 0.83rem;
+    }
+
+    /* ── Error ── */
+    .error-box {
+      margin: 1.5rem 2rem;
+      background: rgba(255,92,92,0.08);
+      border: 1px solid rgba(255,92,92,0.2);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      font-size: 0.82rem;
+      color: var(--danger);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════ LOGIN ════════════════ -->
+<div id="loginScreen">
+  <div class="login-logo">VM Fishing</div>
+  <div class="login-sub">Dashboard · Mercado Libre</div>
+
+  <div class="login-card">
+    <h2>Ingresá tu token</h2>
+    <p>Pegá tu Access Token de ML. No se almacena en ningún servidor — solo vive en tu navegador mientras usás el dashboard.</p>
+
+    <div class="field">
+      <label>Access Token</label>
+      <input type="password" id="tokenInput" placeholder="APP_USR-..." autocomplete="off"/>
+    </div>
+
+    <button class="btn-primary" onclick="iniciarDashboard()">
+      <span>→</span> Ver mis ventas
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════ DASHBOARD ════════════════ -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">VM Fishing</div>
+      <div class="topbar-badge">Mercado Libre</div>
+    </div>
+    <div class="topbar-right">
+      <span class="last-update" id="lastUpdate">—</span>
+      <button class="btn-refresh" id="btnRefresh" onclick="cargarDatos()">
+        <span id="refreshIcon">↻</span> Actualizar
+      </button>
+      <button class="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <div class="error-box" id="errorBox"></div>
+
+  <div class="period-bar">
+    <button class="tab active" onclick="cambiarPeriodo('today', this)">Hoy</button>
+    <button class="tab" onclick="cambiarPeriodo('week', this)">7 días</button>
+    <button class="tab" onclick="cambiarPeriodo('month', this)">30 días</button>
+  </div>
+
+  <div class="main" id="mainGrid">
+    <div class="loading-overlay" style="grid-column:1/-1">
+      <div class="spinner"></div>
+      Cargando tus ventas...
+    </div>
+  </div>
+</div>
+
+<script>
+  const SELLER_ID = '64476836';
+  let accessToken = '';
+  let periodoActual = 'today';
+  let todosLosOrders = [];
+
+  // ── Login ──────────────────────────────────────────────────────
+  function iniciarDashboard() {
+    const t = document.getElementById('tokenInput').value.trim();
+    if (!t) { alert('Ingresá el Access Token'); return; }
+    accessToken = t;
+    sessionStorage.setItem('vmf_token', t);
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    cargarDatos();
+  }
+
+  function cerrarSesion() {
+    sessionStorage.removeItem('vmf_token');
+    accessToken = '';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('tokenInput').value = '';
+  }
+
+  // Auto-login si hay token guardado
+  window.addEventListener('load', () => {
+    const saved = sessionStorage.getItem('vmf_token');
+    if (saved) {
+      accessToken = saved;
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      cargarDatos();
+    }
+  });
+
+  // ── Period ─────────────────────────────────────────────────────
+  function cambiarPeriodo(p, el) {
+    periodoActual = p;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderDashboard(todosLosOrders);
+  }
+
+  function filtrarPorPeriodo(orders) {
+    const ahora = new Date();
+    return orders.filter(o => {
+      const fecha = new Date(o.date_created);
+      const diffMs = ahora - fecha;
+      const diffDias = diffMs / (1000 * 60 * 60 * 24);
+      if (periodoActual === 'today') return diffDias < 1;
+      if (periodoActual === 'week') return diffDias < 7;
+      if (periodoActual === 'month') return diffDias < 30;
+      return true;
+    });
+  }
+
+  // ── API ────────────────────────────────────────────────────────
+  async function mlGet(url) {
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `Error ${res.status}`);
+    }
+    return res.json();
+  }
+
+  async function fetchAllOrders() {
+    let offset = 0;
+    const limit = 50;
+    let all = [];
+    const desde = new Date();
+    desde.setDate(desde.getDate() - 30);
+    const desdeStr = desde.toISOString();
+
+    while (true) {
+      const data = await mlGet(
+        `https://api.mercadolibre.com/orders/search?seller=${SELLER_ID}&sort=date_desc&limit=${limit}&offset=${offset}&order.date_created.from=${desdeStr}`
+      );
+      const results = data.results || [];
+      all = all.concat(results);
+      if (results.length < limit || all.length >= 500) break;
+      offset += limit;
+    }
+    return all;
+  }
+
+  // ── Load & render ──────────────────────────────────────────────
+  async function cargarDatos() {
+    const btn = document.getElementById('btnRefresh');
+    const icon = document.getElementById('refreshIcon');
+    btn.classList.add('loading');
+    icon.innerHTML = '<span class="spinner"></span>';
+
+    document.getElementById('errorBox').style.display = 'none';
+    document.getElementById('mainGrid').innerHTML = `
+      <div class="loading-overlay" style="grid-column:1/-1">
+        <div class="spinner"></div>
+        Cargando tus ventas...
+      </div>`;
+
+    try {
+      todosLosOrders = await fetchAllOrders();
+      renderDashboard(todosLosOrders);
+      const ahora = new Date();
+      document.getElementById('lastUpdate').textContent =
+        'Actualizado: ' + ahora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      const eb = document.getElementById('errorBox');
+      eb.textContent = '⚠️ Error: ' + e.message + '. Verificá que el token sea válido.';
+      eb.style.display = 'block';
+      document.getElementById('mainGrid').innerHTML = '';
+    }
+
+    btn.classList.remove('loading');
+    icon.textContent = '↻';
+  }
+
+  // ── Render ─────────────────────────────────────────────────────
+  function renderDashboard(allOrders) {
+    const orders = filtrarPorPeriodo(allOrders);
+
+    // ── Stats
+    const totalVentas = orders.filter(o => o.status !== 'cancelled').length;
+    const ingresos = orders
+      .filter(o => o.status !== 'cancelled')
+      .reduce((s, o) => s + (o.total_amount || 0), 0);
+    const pagadas = orders.filter(o => o.status === 'paid').length;
+    const pendientes = orders.filter(o => o.status === 'payment_required' || o.status === 'pending').length;
+
+    // ── Productos más vendidos
+    const prodMap = {};
+    orders.filter(o => o.status !== 'cancelled').forEach(o => {
+      (o.order_items || []).forEach(item => {
+        const title = item.item?.title || 'Sin nombre';
+        const id = item.item?.id || '—';
+        const key = id;
+        if (!prodMap[key]) prodMap[key] = { title, id, qty: 0 };
+        prodMap[key].qty += item.quantity || 1;
+      });
+    });
+    const productos = Object.values(prodMap).sort((a, b) => b.qty - a.qty).slice(0, 8);
+    const maxQty = productos[0]?.qty || 1;
+
+    // ── Clientes top
+    const clientMap = {};
+    orders.filter(o => o.status !== 'cancelled').forEach(o => {
+      const buyer = o.buyer;
+      if (!buyer) return;
+      const key = buyer.id;
+      const nombre = [buyer.first_name, buyer.last_name].filter(Boolean).join(' ') || buyer.nickname || `Cliente ${buyer.id}`;
+      if (!clientMap[key]) clientMap[key] = { nombre, qty: 0, total: 0 };
+      clientMap[key].qty += 1;
+      clientMap[key].total += o.total_amount || 0;
+    });
+    const clientes = Object.values(clientMap).sort((a, b) => b.qty - a.qty).slice(0, 8);
+
+    // ── Últimas órdenes
+    const ultimas = orders.slice(0, 20);
+
+    const labelPeriodo = periodoActual === 'today' ? 'hoy' : periodoActual === 'week' ? 'últimos 7 días' : 'últimos 30 días';
+
+    document.getElementById('mainGrid').innerHTML = `
+      <!-- Stats -->
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-label">Ventas ${labelPeriodo}</div>
+        <div class="stat-value accent">${totalVentas}</div>
+        <div class="stat-sub">${pagadas} pagadas · ${pendientes} pendientes</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-label">Ingresos ${labelPeriodo}</div>
+        <div class="stat-value">$${formatNum(ingresos)}</div>
+        <div class="stat-sub">Promedio $${totalVentas ? formatNum(ingresos / totalVentas) : 0} por orden</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-label">Compradores únicos</div>
+        <div class="stat-value">${Object.keys(clientMap).length}</div>
+        <div class="stat-sub">${labelPeriodo}</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-label">Producto top</div>
+        <div class="stat-value" style="font-size:1.1rem; font-family:'DM Sans'; font-weight:500; padding-top:0.3rem;">
+          ${productos[0]?.title?.slice(0, 28) || '—'}${productos[0]?.title?.length > 28 ? '…' : ''}
+        </div>
+        <div class="stat-sub">${productos[0]?.qty || 0} unidades vendidas</div>
+      </div>
+
+      <!-- Últimas órdenes -->
+      <div class="panel panel-full">
+        <div class="panel-head">
+          <div class="panel-title">Últimas órdenes</div>
+          <div class="panel-count">${ultimas.length} de ${orders.length}</div>
+        </div>
+        ${ultimas.length === 0 ? '<div class="empty">Sin órdenes en este período</div>' : `
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>ID Orden</th>
+              <th>Fecha</th>
+              <th>Producto</th>
+              <th>Comprador</th>
+              <th>Monto</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${ultimas.map(o => {
+              const item = o.order_items?.[0];
+              const titulo = item?.item?.title || '—';
+              const buyer = o.buyer;
+              const nombre = buyer ? ([buyer.first_name, buyer.last_name].filter(Boolean).join(' ') || buyer.nickname || `#${buyer.id}`) : '—';
+              const fecha = new Date(o.date_created).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+              return `<tr>
+                <td><span class="order-id">#${o.id}</span></td>
+                <td style="color:var(--muted);font-size:0.78rem">${fecha}</td>
+                <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${titulo}">${titulo}</td>
+                <td style="color:var(--muted)">${nombre}</td>
+                <td class="amount-cell">$${formatNum(o.total_amount || 0)}</td>
+                <td>${statusPill(o.status)}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>`}
+      </div>
+
+      <!-- Productos más vendidos -->
+      <div class="panel panel-half">
+        <div class="panel-head">
+          <div class="panel-title">Productos más vendidos</div>
+          <div class="panel-count">${productos.length} productos</div>
+        </div>
+        <div class="product-list">
+          ${productos.length === 0 ? '<div class="empty">Sin datos</div>' : productos.map((p, i) => `
+            <div class="product-item">
+              <div class="product-rank ${i === 0 ? 'top' : ''}">${i + 1}</div>
+              <div class="product-info">
+                <div class="product-name" title="${p.title}">${p.title}</div>
+                <div class="product-id">${p.id}</div>
+              </div>
+              <div class="product-bar-wrap">
+                <div class="product-bar" style="width:${Math.round((p.qty/maxQty)*100)}%"></div>
+              </div>
+              <div class="product-qty">${p.qty}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- Clientes top -->
+      <div class="panel panel-half">
+        <div class="panel-head">
+          <div class="panel-title">Mejores compradores</div>
+          <div class="panel-count">${clientes.length} clientes</div>
+        </div>
+        <div class="product-list">
+          ${clientes.length === 0 ? '<div class="empty">Sin datos</div>' : clientes.map(c => `
+            <div class="customer-item">
+              <div class="customer-avatar">${c.nombre.charAt(0).toUpperCase()}</div>
+              <div class="customer-info">
+                <div class="customer-name">${c.nombre}</div>
+                <div class="customer-orders">${c.qty} compra${c.qty > 1 ? 's' : ''}</div>
+              </div>
+              <div class="customer-total">$${formatNum(c.total)}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────
+  function formatNum(n) {
+    return Math.round(n).toLocaleString('es-AR');
+  }
+
+  function statusPill(status) {
+    const map = {
+      'paid': ['status-paid', '✓ Pagada'],
+      'payment_required': ['status-pending', '⏳ Pendiente'],
+      'pending': ['status-pending', '⏳ Pendiente'],
+      'cancelled': ['status-cancelled', '✕ Cancelada'],
+      'shipped': ['status-shipped', '🚚 Enviada'],
+      'delivered': ['status-shipped', '✓ Entregada'],
+    };
+    const [cls, label] = map[status] || ['status-pending', status];
+    return `<span class="status-pill ${cls}">${label}</span>`;
+  }
+
+  // Enter en el input de token
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('tokenInput')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') iniciarDashboard();
+    });
+  });
+</script>
+</body>
+</html>
